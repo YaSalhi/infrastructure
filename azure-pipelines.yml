@@ -5,35 +5,41 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  - name: workingDirectory
-    value: 'terraform/dev'
+  workingDirectory: 'terraform/dev'
+  environmentServiceConnection: 'connection-rg-dev'  
 
-steps:
-  - task: TerraformInstaller@1
-    inputs:
-      terraformVersion: '1.7.5'
+stages:
+  - stage: Dev_Deployment
+    displayName: "Deploy Dev Environment"
+    jobs:
+      - job: Terraform_Dev
+        displayName: "Terraform - Dev"
+        steps:
+          - task: TerraformInstaller@1
+            inputs:
+              terraformVersion: '1.7.5'
 
-  - task: TerraformCLI@1
-    displayName: 'Terraform Init'
-    inputs:
-      provider: 'azurerm'
-      command: 'init'
-      workingDirectory: '$(workingDirectory)'
-      backendType: 'local'
+          - task: TerraformCLI@1
+            displayName: 'Terraform Init'
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(workingDirectory)'
+              backendType: 'local'
 
-  - task: TerraformCLI@1
-    displayName: 'Terraform Plan'
-    inputs:
-      provider: 'azurerm'
-      command: 'plan'
-      workingDirectory: '$(workingDirectory)'
-      environmentServiceName: 'rg-dev-env'
+          - task: TerraformCLI@1
+            displayName: 'Terraform Plan'
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              workingDirectory: '$(workingDirectory)'
+              environmentServiceName: '$(environmentServiceConnection)'
 
-  - task: TerraformCLI@1
-    displayName: 'Terraform Apply'
-    inputs:
-      provider: 'azurerm'
-      command: 'apply'
-      workingDirectory: '$(workingDirectory)'
-      environmentServiceName: 'rg-dev-env'
-      args: '-auto-approve'
+          - task: TerraformCLI@1
+            displayName: 'Terraform Apply'
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              workingDirectory: '$(workingDirectory)'
+              environmentServiceName: '$(environmentServiceConnection)'
+              args: '-auto-approve'
