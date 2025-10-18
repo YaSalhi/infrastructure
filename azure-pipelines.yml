@@ -2,7 +2,7 @@ trigger:
   - main
 
 pool:
-  vmImage: 'ubuntu-latest'
+  name: SelfHostedPool
 
 variables:
   workingDirectory: 'terraform/dev'
