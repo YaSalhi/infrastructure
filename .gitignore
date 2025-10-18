@@ -1,0 +1,29 @@
+# --- Terraform ---
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+**/.terraform/
+**/.terraform.lock.hcl
+
+# --- System files ---
+.DS_Store
+Thumbs.db
+
+# --- Executables ---
+*.exe
+*.dll
+*.so
+*.dylib
+
+# --- Logs ---
+*.log
+
+# --- IDE files ---
+.vscode/
+.idea/
