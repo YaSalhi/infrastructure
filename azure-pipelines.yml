@@ -10,10 +10,10 @@ variables:
   environmentServiceConnectionTest: 'connection-test'  
   environmentServiceConnectionProd: 'connection-prod'  
 
-stages:
 # =====================================================
 # 🔹 DEV
 # =====================================================
+stages:
 - stage: Dev_Deployment
   displayName: "Deploy Dev Environment"
   jobs:
@@ -40,29 +40,26 @@ stages:
             script: |
               cd $(workingDirectory)
               $ws = terraform workspace list
-              if ($ws -notmatch "dev") {
+              if (-not ($ws -split "`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ -eq "dev" })) {
                   terraform workspace new dev
               }
               terraform workspace select dev
 
-
-        - task: TerraformTaskV3@3
+        - task: PowerShell@2
           displayName: 'Terraform Plan (Dev)'
           inputs:
-            provider: 'azurerm'
-            command: 'plan'
-            workingDirectory: '$(workingDirectory)'
-            environmentServiceName: '$(environmentServiceConnectionDev)'
-            commandOptions: '-var-file=dev.tfvars'
+            targetType: 'inline'
+            script: |
+              cd $(workingDirectory)
+              terraform plan -var-file=dev.tfvars
 
-        - task: TerraformTaskV3@3
+        - task: PowerShell@2
           displayName: 'Terraform Apply (Dev)'
           inputs:
-            provider: 'azurerm'
-            command: 'apply'
-            workingDirectory: '$(workingDirectory)'
-            environmentServiceName: '$(environmentServiceConnectionDev)'
-            commandOptions: '-auto-approve -var-file=dev.tfvars'
+            targetType: 'inline'
+            script: |
+              cd $(workingDirectory)
+              terraform apply -auto-approve -var-file=dev.tfvars
 
 # =====================================================
 # 🔹 TEST
@@ -90,29 +87,26 @@ stages:
             script: |
               cd $(workingDirectory)
               $ws = terraform workspace list
-              if ($ws -notmatch "test") {
+              if (-not ($ws -split "`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ -eq "test" })) {
                   terraform workspace new test
               }
               terraform workspace select test
 
-
-        - task: TerraformTaskV3@3
-          displayName: 'Terraform Plan (test)'
+        - task: PowerShell@2
+          displayName: 'Terraform Plan (Test)'
           inputs:
-            provider: 'azurerm'
-            command: 'plan'
-            workingDirectory: '$(workingDirectory)'
-            environmentServiceName: '$(environmentServiceConnectionTest)'
-            commandOptions: '-var-file=test.tfvars'
+            targetType: 'inline'
+            script: |
+              cd $(workingDirectory)
+              terraform plan -var-file=test.tfvars
 
-        - task: TerraformTaskV3@3
-          displayName: 'Terraform Apply (test)'
+        - task: PowerShell@2
+          displayName: 'Terraform Apply (Test)'
           inputs:
-            provider: 'azurerm'
-            command: 'apply'
-            workingDirectory: '$(workingDirectory)'
-            environmentServiceName: '$(environmentServiceConnectionTest)'
-            commandOptions: '-auto-approve -var-file=test.tfvars'
+            targetType: 'inline'
+            script: |
+              cd $(workingDirectory)
+              terraform apply -auto-approve -var-file=test.tfvars
 
 # =====================================================
 # 🔹 PROD (avec approbation manuelle)
@@ -124,7 +118,7 @@ stages:
   jobs:
     - deployment: Terraform_Prod
       displayName: "Terraform - Prod"
-      environment: "Production"  # ✅ crée une approbation manuelle avant le déploiement
+      environment: "Production"  # ✅ Approvisionnement manuel avant déploiement
       strategy:
         runOnce:
           deploy:
@@ -144,27 +138,23 @@ stages:
                   script: |
                     cd $(workingDirectory)
                     $ws = terraform workspace list
-                    if ($ws -notmatch "prod") {
+                    if (-not ($ws -split "`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ -eq "prod" })) {
                         terraform workspace new prod
                     }
                     terraform workspace select prod
 
-
-
-              - task: TerraformTaskV3@3
-                displayName: 'Terraform Plan (prod)'
+              - task: PowerShell@2
+                displayName: 'Terraform Plan (Prod)'
                 inputs:
-                  provider: 'azurerm'
-                  command: 'plan'
-                  workingDirectory: '$(workingDirectory)'
-                  environmentServiceName: '$(environmentServiceConnectionProd)'
-                  commandOptions: '-var-file=prod.tfvars'
+                  targetType: 'inline'
+                  script: |
+                    cd $(workingDirectory)
+                    terraform plan -var-file=prod.tfvars
 
-              - task: TerraformTaskV3@3
-                displayName: 'Terraform Apply (prod)'
+              - task: PowerShell@2
+                displayName: 'Terraform Apply (Prod)'
                 inputs:
-                  provider: 'azurerm'
-                  command: 'apply'
-                  workingDirectory: '$(workingDirectory)'
-                  environmentServiceName: '$(environmentServiceConnectionProd)'
-                  commandOptions: '-auto-approve -var-file=prod.tfvars'
+                  targetType: 'inline'
+                  script: |
+                    cd $(workingDirectory)
+                    terraform apply -auto-approve -var-file=prod.tfvars
