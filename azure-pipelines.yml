@@ -33,14 +33,18 @@ stages:
               cd $(workingDirectory)
               terraform init -backend=false
 
-        - task: TerraformTaskV3@3
-          displayName: "Créer / sélectionner Workspace Dev"
+        - task: PowerShell@2
+          displayName: 'Créer / sélectionner Workspace Dev'
           inputs:
-            command: 'workspace'
-            workingDirectory: '$(workingDirectory)'
-            workspaceSubCommand: 'select'
-            workspaceName: 'dev'
-            allowTelemetryCollection: false
+            targetType: 'inline'
+            script: |
+              cd $(workingDirectory)
+              $ws = terraform workspace list
+              if ($ws -notmatch "dev") {
+                  terraform workspace new dev
+              }
+              terraform workspace select dev
+
 
         - task: TerraformTaskV3@3
           displayName: 'Terraform Plan (Dev)'
@@ -79,14 +83,18 @@ stages:
               cd $(workingDirectory)
               terraform init -backend=false
 
-        - task: TerraformTaskV3@3
-          displayName: "Créer / sélectionner Workspace Test"
+        - task: PowerShell@2
+          displayName: 'Créer / sélectionner Workspace Test'
           inputs:
-            command: 'workspace'
-            workingDirectory: '$(workingDirectory)'
-            workspaceSubCommand: 'select'
-            workspaceName: 'test'
-            allowTelemetryCollection: false
+            targetType: 'inline'
+            script: |
+              cd $(workingDirectory)
+              $ws = terraform workspace list
+              if ($ws -notmatch "test") {
+                  terraform workspace new test
+              }
+              terraform workspace select test
+
 
         - task: TerraformTaskV3@3
           displayName: 'Terraform Plan (test)'
@@ -129,14 +137,18 @@ stages:
                     cd $(workingDirectory)
                     terraform init -backend=false
 
-              - task: TerraformTaskV3@3
-                displayName: "Créer / sélectionner Workspace Prod"
+              - task: PowerShell@2
+                displayName: 'Créer / sélectionner Workspace Prod'
                 inputs:
-                  command: 'workspace'
-                  workingDirectory: '$(workingDirectory)'
-                  workspaceSubCommand: 'select'
-                  workspaceName: 'prod'
-                  allowTelemetryCollection: false
+                  targetType: 'inline'
+                  script: |
+                    cd $(workingDirectory)
+                    $ws = terraform workspace list
+                    if ($ws -notmatch "prod") {
+                        terraform workspace new prod
+                    }
+                    terraform workspace select prod
+
 
 
               - task: TerraformTaskV3@3
