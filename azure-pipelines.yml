@@ -25,15 +25,15 @@ stages:
           inputs:
             terraformVersion: '1.7.5'
 
-        - task: TerraformCLI@1
-          displayName: 'Terraform Init (Dev)'
+        - task: PowerShell@2
+          displayName: 'Terraform Init (Dev) - backend local'
           inputs:
-            provider: 'azurerm'
-            command: 'init'
-            workingDirectory: '$(workingDirectory)'
-            backendType: 'local'
+            targetType: 'inline'
+            script: |
+              cd $(workingDirectory)
+              terraform init -backend=false
 
-        - task: TerraformCLI@1
+        - task: TerraformTaskV3@3
           displayName: "Créer / sélectionner Workspace Dev"
           inputs:
             command: 'workspace'
@@ -42,7 +42,7 @@ stages:
             workspaceName: 'dev'
             allowTelemetryCollection: false
 
-        - task: TerraformCLI@1
+        - task: TerraformTaskV3@3
           displayName: 'Terraform Plan (Dev)'
           inputs:
             provider: 'azurerm'
@@ -51,7 +51,7 @@ stages:
             environmentServiceName: '$(environmentServiceConnectionDev)'
             commandOptions: '-var-file=dev.tfvars'
 
-        - task: TerraformCLI@1
+        - task: TerraformTaskV3@3
           displayName: 'Terraform Apply (Dev)'
           inputs:
             provider: 'azurerm'
@@ -71,15 +71,15 @@ stages:
     - job: Terraform_Test
       displayName: "Terraform - Test"
       steps:
-        - task: TerraformCLI@1
-          displayName: 'Terraform Init (test)'
+        - task: PowerShell@2
+          displayName: 'Terraform Init (Test) - backend local'
           inputs:
-            provider: 'azurerm'
-            command: 'init'
-            workingDirectory: '$(workingDirectory)'
-            backendType: 'local'
+            targetType: 'inline'
+            script: |
+              cd $(workingDirectory)
+              terraform init -backend=false
 
-        - task: TerraformCLI@1
+        - task: TerraformTaskV3@3
           displayName: "Créer / sélectionner Workspace Test"
           inputs:
             command: 'workspace'
@@ -88,7 +88,7 @@ stages:
             workspaceName: 'test'
             allowTelemetryCollection: false
 
-        - task: TerraformCLI@1
+        - task: TerraformTaskV3@3
           displayName: 'Terraform Plan (test)'
           inputs:
             provider: 'azurerm'
@@ -97,7 +97,7 @@ stages:
             environmentServiceName: '$(environmentServiceConnectionTest)'
             commandOptions: '-var-file=test.tfvars'
 
-        - task: TerraformCLI@1
+        - task: TerraformTaskV3@3
           displayName: 'Terraform Apply (test)'
           inputs:
             provider: 'azurerm'
@@ -121,15 +121,15 @@ stages:
         runOnce:
           deploy:
             steps:
-              - task: TerraformCLI@1
-                displayName: 'Terraform Init (prod)'
+              - task: PowerShell@2
+                displayName: 'Terraform Init (Prod) - backend local'
                 inputs:
-                  provider: 'azurerm'
-                  command: 'init'
-                  workingDirectory: '$(workingDirectory)'
-                  backendType: 'local'
+                  targetType: 'inline'
+                  script: |
+                    cd $(workingDirectory)
+                    terraform init -backend=false
 
-              - task: TerraformCLI@1
+              - task: TerraformTaskV3@3
                 displayName: "Créer / sélectionner Workspace Prod"
                 inputs:
                   command: 'workspace'
@@ -139,7 +139,7 @@ stages:
                   allowTelemetryCollection: false
 
 
-              - task: TerraformCLI@1
+              - task: TerraformTaskV3@3
                 displayName: 'Terraform Plan (prod)'
                 inputs:
                   provider: 'azurerm'
@@ -148,7 +148,7 @@ stages:
                   environmentServiceName: '$(environmentServiceConnectionProd)'
                   commandOptions: '-var-file=prod.tfvars'
 
-              - task: TerraformCLI@1
+              - task: TerraformTaskV3@3
                 displayName: 'Terraform Apply (prod)'
                 inputs:
                   provider: 'azurerm'
