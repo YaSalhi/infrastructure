@@ -1,35 +1,34 @@
 
-# ressource groupe
-module "rg_dev" {
-  source   = "./modules/resource_group"
-  rg_name  = "rg-dev-env"
-  location = "West Europe"
+module "rg_env" {
+  source    = "./modules/resource_group"
+  
+  rg_name   = var.rg_name
+  location  = var.location
 }
 
-
 # App Service Plan
-module "plan_dev" {
+module "plan" {
   source              = "./modules/app_service_plan"
-  name                = "plan-dev-env"
-  resource_group_name = module.rg_dev.rg_name
-  location            = module.rg_dev.location
+  name                = var.plan_name
+  resource_group_name = var.rg_name
+  location            = var.location
 }
 
 # Web App Service
-module "webapp_dev" {
+module "webapp" {
   source              = "./modules/web_app"
-  name                = "webapp-dev-env"
-  resource_group_name = module.rg_dev.rg_name
-  location            = module.rg_dev.location
-  service_plan_id     = module.plan_dev.plan_id
+  name                = var.web_app_name
+  resource_group_name = var.rg_name
+  location            = var.location
+  service_plan_id     = module.plan.plan_id
 }
 
 # database
-module "db_dev" {
+module "db" {
   source              = "./modules/database"
-  server_name         = "server-dev-env"
-  db_name             = "db-dev-env"
-  resource_group_name = module.rg_dev.rg_name
-  location            = "northeurope"   # variable sql_location
-  admin_password      = "Password123!" # ou via Key Vault
+  server_name         = var.db_server_name
+  db_name             = var.db_name
+  resource_group_name = var.rg_name
+  location            = var.db_location 
+  admin_password      = var.db_password 
 }

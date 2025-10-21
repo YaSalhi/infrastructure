@@ -5,43 +5,154 @@ pool:
   name: SelfHostedPool
 
 variables:
-  workingDirectory: 'terraform/dev'
-  environmentServiceConnection: 'connection-rg-dev'  
+  workingDirectory: 'terraform'
+  environmentServiceConnectionDev: 'connection-rg-dev'  
+  environmentServiceConnectionTest: 'connection-test'  
+  environmentServiceConnectionProd: 'connection-prod'  
 
 stages:
-  - stage: Dev_Deployment
-    displayName: "Deploy Dev Environment"
-    jobs:
-      - job: Terraform_Dev
-        displayName: "Terraform - Dev"
-        steps:
-          - task: TerraformInstaller@1
-            inputs:
-              terraformVersion: '1.7.5'
+# =====================================================
+# 🔹 DEV
+# =====================================================
+- stage: Dev_Deployment
+  displayName: "Deploy Dev Environment"
+  jobs:
+    - job: Terraform_Dev
+      displayName: "Terraform - Dev"
+      steps:
+        - task: TerraformInstaller@1
+          displayName: 'Installer Terraform'
+          inputs:
+            terraformVersion: '1.7.5'
 
-          - task: TerraformCLI@1
-            displayName: 'Terraform Init'
-            inputs:
-              provider: 'azurerm'
-              command: 'init'
-              workingDirectory: '$(workingDirectory)'
-              backendType: 'local'
+        - task: TerraformCLI@1
+          displayName: 'Terraform Init (Dev)'
+          inputs:
+            provider: 'azurerm'
+            command: 'init'
+            workingDirectory: '$(workingDirectory)'
+            backendType: 'local'
 
-          - task: TerraformCLI@1
-            displayName: 'Terraform Plan'
-            inputs:
-              provider: 'azurerm'
-              command: 'plan'
-              workingDirectory: '$(workingDirectory)'
-              environmentServiceName: '$(environmentServiceConnection)'
+        - task: TerraformCLI@1
+          displayName: "Créer / sélectionner Workspace Dev"
+          inputs:
+            command: 'workspace'
+            workingDirectory: '$(workingDirectory)'
+            workspaceSubCommand: 'select'
+            workspaceName: 'dev'
+            allowTelemetryCollection: false
 
-          - task: TerraformCLI@1
-            displayName: 'Terraform Apply'
-            inputs:
-              provider: 'azurerm'
-              command: 'apply'
-              workingDirectory: '$(workingDirectory)'
-              environmentServiceName: '$(environmentServiceConnection)'
-              args: '-auto-approve'
+        - task: TerraformCLI@1
+          displayName: 'Terraform Plan (Dev)'
+          inputs:
+            provider: 'azurerm'
+            command: 'plan'
+            workingDirectory: '$(workingDirectory)'
+            environmentServiceName: '$(environmentServiceConnectionDev)'
+            commandOptions: '-var-file=dev.tfvars'
 
- 
+        - task: TerraformCLI@1
+          displayName: 'Terraform Apply (Dev)'
+          inputs:
+            provider: 'azurerm'
+            command: 'apply'
+            workingDirectory: '$(workingDirectory)'
+            environmentServiceName: '$(environmentServiceConnectionDev)'
+            commandOptions: '-auto-approve -var-file=dev.tfvars'
+
+# =====================================================
+# 🔹 TEST
+# =====================================================
+- stage: Test_Deployment
+  displayName: "Deploy Test Environment"
+  dependsOn: Dev_Deployment
+  condition: succeeded()
+  jobs:
+    - job: Terraform_Test
+      displayName: "Terraform - Test"
+      steps:
+        - task: TerraformCLI@1
+          displayName: 'Terraform Init (test)'
+          inputs:
+            provider: 'azurerm'
+            command: 'init'
+            workingDirectory: '$(workingDirectory)'
+            backendType: 'local'
+
+        - task: TerraformCLI@1
+          displayName: "Créer / sélectionner Workspace Test"
+          inputs:
+            command: 'workspace'
+            workingDirectory: '$(workingDirectory)'
+            workspaceSubCommand: 'select'
+            workspaceName: 'test'
+            allowTelemetryCollection: false
+
+        - task: TerraformCLI@1
+          displayName: 'Terraform Plan (test)'
+          inputs:
+            provider: 'azurerm'
+            command: 'plan'
+            workingDirectory: '$(workingDirectory)'
+            environmentServiceName: '$(environmentServiceConnectionTest)'
+            commandOptions: '-var-file=test.tfvars'
+
+        - task: TerraformCLI@1
+          displayName: 'Terraform Apply (test)'
+          inputs:
+            provider: 'azurerm'
+            command: 'apply'
+            workingDirectory: '$(workingDirectory)'
+            environmentServiceName: '$(environmentServiceConnectionTest)'
+            commandOptions: '-auto-approve -var-file=test.tfvars'
+
+# =====================================================
+# 🔹 PROD (avec approbation manuelle)
+# =====================================================
+- stage: Prod_Deployment
+  displayName: "Deploy Prod Environment"
+  dependsOn: Test_Deployment
+  condition: succeeded()
+  jobs:
+    - deployment: Terraform_Prod
+      displayName: "Terraform - Prod"
+      environment: "Production"  # ✅ crée une approbation manuelle avant le déploiement
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+              - task: TerraformCLI@1
+                displayName: 'Terraform Init (prod)'
+                inputs:
+                  provider: 'azurerm'
+                  command: 'init'
+                  workingDirectory: '$(workingDirectory)'
+                  backendType: 'local'
+
+              - task: TerraformCLI@1
+                displayName: "Créer / sélectionner Workspace Prod"
+                inputs:
+                  command: 'workspace'
+                  workingDirectory: '$(workingDirectory)'
+                  workspaceSubCommand: 'select'
+                  workspaceName: 'prod'
+                  allowTelemetryCollection: false
+
+
+              - task: TerraformCLI@1
+                displayName: 'Terraform Plan (prod)'
+                inputs:
+                  provider: 'azurerm'
+                  command: 'plan'
+                  workingDirectory: '$(workingDirectory)'
+                  environmentServiceName: '$(environmentServiceConnectionProd)'
+                  commandOptions: '-var-file=prod.tfvars'
+
+              - task: TerraformCLI@1
+                displayName: 'Terraform Apply (prod)'
+                inputs:
+                  provider: 'azurerm'
+                  command: 'apply'
+                  workingDirectory: '$(workingDirectory)'
+                  environmentServiceName: '$(environmentServiceConnectionProd)'
+                  commandOptions: '-auto-approve -var-file=prod.tfvars'

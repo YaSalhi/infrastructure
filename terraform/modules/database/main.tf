@@ -5,10 +5,22 @@ resource "azurerm_mssql_server" "sql" {
   version                      = "12.0"
   administrator_login          = var.admin_login
   administrator_login_password = var.admin_password
+ 
+  depends_on = [
+    var.resource_group_name
+  ]
 }
+
 
 resource "azurerm_mssql_database" "db" {
   name      = var.db_name
   server_id = azurerm_mssql_server.sql.id
   sku_name  = var.sku_name
+
+
+     depends_on = [
+    azurerm_mssql_server.sql
+  ]
+
 }
+
