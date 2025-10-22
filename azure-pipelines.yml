@@ -151,4 +151,4 @@ stages:
                 inputs:
                   targetType: 'inline'
                   script: |
-                    terraform -chdir=$(workingDirectory) apply -auto-approve -var-file="prod.tfvars"
+                    terraform -chdir=$(workingDirectory) apply  -var-file="prod.tfvars"

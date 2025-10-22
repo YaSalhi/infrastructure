@@ -4,4 +4,8 @@ resource "azurerm_service_plan" "plan" {
   location            = var.location
   os_type             = var.os_type
   sku_name            = var.sku_name
+
+    depends_on = [
+    var.resource_group_name
+  ]
 }
