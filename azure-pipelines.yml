@@ -50,16 +50,14 @@ stages:
           inputs:
             targetType: 'inline'
             script: |
-              cd $(workingDirectory)
-              terraform plan -var-file=dev.tfvars
+              terraform -chdir=$(workingDirectory) plan -var-file="dev.tfvars"
 
         - task: PowerShell@2
           displayName: 'Terraform Apply (Dev)'
           inputs:
             targetType: 'inline'
             script: |
-              cd $(workingDirectory)
-              terraform apply -auto-approve -var-file=dev.tfvars
+              terraform -chdir=$(workingDirectory) apply -auto-approve -var-file="dev.tfvars"
 
 # =====================================================
 # 🔹 TEST
@@ -97,16 +95,14 @@ stages:
           inputs:
             targetType: 'inline'
             script: |
-              cd $(workingDirectory)
-              terraform plan -var-file=test.tfvars
+              terraform -chdir=$(workingDirectory) plan -var-file="test.tfvars"
 
         - task: PowerShell@2
           displayName: 'Terraform Apply (Test)'
           inputs:
             targetType: 'inline'
             script: |
-              cd $(workingDirectory)
-              terraform apply -auto-approve -var-file=test.tfvars
+              terraform -chdir=$(workingDirectory) apply -auto-approve -var-file="test.tfvars"
 
 # =====================================================
 # 🔹 PROD (avec approbation manuelle)
@@ -148,13 +144,11 @@ stages:
                 inputs:
                   targetType: 'inline'
                   script: |
-                    cd $(workingDirectory)
-                    terraform plan -var-file=prod.tfvars
+                    terraform -chdir=$(workingDirectory) plan -var-file="prod.tfvars"
 
               - task: PowerShell@2
                 displayName: 'Terraform Apply (Prod)'
                 inputs:
                   targetType: 'inline'
                   script: |
-                    cd $(workingDirectory)
-                    terraform apply -auto-approve -var-file=prod.tfvars
+                    terraform -chdir=$(workingDirectory) apply -auto-approve -var-file="prod.tfvars"
