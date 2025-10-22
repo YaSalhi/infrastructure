@@ -59,6 +59,14 @@ stages:
             script: |
               terraform -chdir=$(workingDirectory) apply -auto-approve -var-file="dev.tfvars"
 
+        # ➡️ Publier les artifacts Dev
+        - task: PublishBuildArtifacts@1
+          displayName: 'Publish Terraform Artifacts'
+          inputs:
+            pathToPublish: '$(workingDirectory)'  
+            artifactName: 'Terraform_Dev_Output'
+            publishLocation: 'Container'
+
 # =====================================================
 # 🔹 TEST
 # =====================================================
@@ -70,6 +78,10 @@ stages:
     - job: Terraform_Test
       displayName: "Terraform - Test"
       steps:
+        # ➡️ Télécharger l'artifact Dev
+        - download: current
+          artifact: Terraform_Dev_Output
+
         - task: PowerShell@2
           displayName: 'Terraform Init (Test) - backend local'
           inputs:
@@ -119,6 +131,10 @@ stages:
         runOnce:
           deploy:
             steps:
+              # ➡️ Télécharger l'artifact Dev (ou Test si tu veux)
+              - download: current
+                artifact: Terraform_Dev_Output
+
               - task: PowerShell@2
                 displayName: 'Terraform Init (Prod) - backend local'
                 inputs:
@@ -151,4 +167,4 @@ stages:
                 inputs:
                   targetType: 'inline'
                   script: |
-                    terraform -chdir=$(workingDirectory) apply  -var-file="prod.tfvars"
+                    terraform -chdir=$(workingDirectory) apply -auto-approve -var-file="prod.tfvars"
