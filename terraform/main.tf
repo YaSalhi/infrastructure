@@ -12,6 +12,10 @@ module "plan" {
   name                = var.plan_name
   resource_group_name = var.rg_name
   location            = var.location
+
+    depends_on = [
+    module.rg_env  # ✅ Dépend directement du module resource_group
+  ]
 }
 
 # Web App Service
@@ -21,6 +25,10 @@ module "webapp" {
   resource_group_name = var.rg_name
   location            = var.location
   service_plan_id     = module.plan.plan_id
+
+    depends_on = [
+    module.rg_env  # ✅ Dépend directement du module resource_group
+  ]
 }
 
 # database
@@ -31,4 +39,8 @@ module "db" {
   resource_group_name = var.rg_name
   location            = var.db_location 
   admin_password      = var.db_password 
+
+    depends_on = [
+    module.rg_env  # ✅ Dépend directement du module resource_group
+  ]
 }
