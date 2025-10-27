@@ -50,22 +50,24 @@ stages:
           inputs:
             targetType: 'inline'
             script: |
-              terraform -chdir=$(workingDirectory) plan -var-file="dev.tfvars"
+              terraform -chdir=$(workingDirectory) plan -var-file="dev.tfvars" -out=tfplan-dev
 
         - task: PowerShell@2
           displayName: 'Terraform Apply (Dev)'
           inputs:
             targetType: 'inline'
             script: |
-              terraform -chdir=$(workingDirectory) apply -auto-approve -var-file="dev.tfvars"
+              terraform -chdir=$(workingDirectory) apply -auto-approve tfplan-dev
 
-        # ➡️ Publier les artifacts Dev
+        # ✅ Publier uniquement les fichiers utiles
         - task: PublishBuildArtifacts@1
-          displayName: 'Publish Terraform Artifacts'
+          displayName: 'Publier fichiers Terraform utiles'
           inputs:
-            pathToPublish: '$(workingDirectory)'  
+            pathToPublish: '$(workingDirectory)'
             artifactName: 'Terraform_Dev_Output'
             publishLocation: 'Container'
+            # Exclure les fichiers inutiles
+          condition: succeeded()
 
 # =====================================================
 # 🔹 TEST
@@ -78,9 +80,12 @@ stages:
     - job: Terraform_Test
       displayName: "Terraform - Test"
       steps:
-        # ➡️ Télécharger l'artifact Dev
+        # ✅ Télécharger uniquement les fichiers nécessaires
         - download: current
           artifact: Terraform_Dev_Output
+          patterns: |
+            **/*.tf
+            **/*.tfvars
 
         - task: PowerShell@2
           displayName: 'Terraform Init (Test) - backend local'
@@ -107,14 +112,14 @@ stages:
           inputs:
             targetType: 'inline'
             script: |
-              terraform -chdir=$(workingDirectory) plan -var-file="test.tfvars"
+              terraform -chdir=$(workingDirectory) plan -var-file="test.tfvars" -out=tfplan-test
 
         - task: PowerShell@2
           displayName: 'Terraform Apply (Test)'
           inputs:
             targetType: 'inline'
             script: |
-              terraform -chdir=$(workingDirectory) apply -auto-approve -var-file="test.tfvars"
+              terraform -chdir=$(workingDirectory) apply -auto-approve tfplan-test
 
 # =====================================================
 # 🔹 PROD (avec approbation manuelle)
@@ -126,14 +131,16 @@ stages:
   jobs:
     - deployment: Terraform_Prod
       displayName: "Terraform - Prod"
-      environment: "Production"  # ✅ Approvisionnement manuel avant déploiement
+      environment: "Production"  # ✅ Validation manuelle
       strategy:
         runOnce:
           deploy:
             steps:
-              # ➡️ Télécharger l'artifact Dev (ou Test si tu veux)
               - download: current
                 artifact: Terraform_Dev_Output
+                patterns: |
+                  **/*.tf
+                  **/*.tfvars
 
               - task: PowerShell@2
                 displayName: 'Terraform Init (Prod) - backend local'
@@ -160,11 +167,11 @@ stages:
                 inputs:
                   targetType: 'inline'
                   script: |
-                    terraform -chdir=$(workingDirectory) plan -var-file="prod.tfvars"
+                    terraform -chdir=$(workingDirectory) plan -var-file="prod.tfvars" -out=tfplan-prod
 
               - task: PowerShell@2
                 displayName: 'Terraform Apply (Prod)'
                 inputs:
                   targetType: 'inline'
                   script: |
-                    terraform -chdir=$(workingDirectory) apply -auto-approve -var-file="prod.tfvars"
+                    terraform -chdir=$(workingDirectory) apply -auto-approve tfplan-prod
