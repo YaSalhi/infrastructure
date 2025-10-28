@@ -21,14 +21,15 @@ resource "azurerm_mssql_server" "sql" {
 
 
 resource "azurerm_mssql_database" "db" {
-  name      = var.db_name
-  server_id = azurerm_mssql_server.sql.id
-  sku_name  = var.sku_name
+  name                        = var.db_name
+  server_id                   = azurerm_mssql_server.sql.id
+  sku_name                    = var.sku_name
+  storage_account_type        = "Local"  # Use local redundancy instead of geo-redundant
+  zone_redundant             = false
+  geo_backup_enabled         = false
 
-
-     depends_on = [
+  depends_on = [
     azurerm_mssql_server.sql
   ]
-
 }
 

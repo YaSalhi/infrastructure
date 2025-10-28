@@ -1,5 +1,5 @@
 # test.tfvars
-rg_name  = "rg-test-10101"
+rg_name  = "rg-test"
 location = "Spain Central"
 plan_name = "plan-test-10101"
 web_app_name = "webapp-test-10101"

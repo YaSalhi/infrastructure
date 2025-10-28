@@ -1,5 +1,5 @@
 # prod.tfvars
-rg_name  = "rg-prod-10101"
+rg_name  = "rg-prod"
 location = "Spain Central"
 plan_name = "plan-prod-10101"
 web_app_name = "webapp-prod-10101"

@@ -1,5 +1,5 @@
 # dev.tfvars
-rg_name  = "rg-dev-10101"
+rg_name  = "rg-dev"
 location = "Spain Central"
 plan_name = "plan-dev-10101"
 web_app_name = "webapp-dev-10101"
