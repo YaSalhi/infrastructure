@@ -14,4 +14,10 @@ resource "azurerm_linux_web_app" "app" {
     depends_on = [
     var.resource_group_name
   ]
+
+  lifecycle {
+  prevent_destroy = true
+}
+
+  
 }

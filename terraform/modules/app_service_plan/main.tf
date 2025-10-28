@@ -8,4 +8,8 @@ resource "azurerm_service_plan" "plan" {
     depends_on = [
     var.resource_group_name
   ]
+   lifecycle {
+    prevent_destroy = true
+  }
+
 }

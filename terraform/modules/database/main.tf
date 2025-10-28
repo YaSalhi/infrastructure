@@ -5,10 +5,18 @@ resource "azurerm_mssql_server" "sql" {
   version                      = "12.0"
   administrator_login          = var.admin_login
   administrator_login_password = var.admin_password
- 
-  depends_on = [
-    var.resource_group_name
-  ]
+
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes = [
+      tags,
+      administrator_login_password
+    ]
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 
